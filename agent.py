@@ -31,7 +31,6 @@ class DDPG:
             target_param.data.copy_(param.data)
         for target_param, param in zip(self.target_actor.parameters(), self.actor.parameters()):
             target_param.data.copy_(param.data)
-
         self.critic_optimizer = optim.Adam(
             self.critic.parameters(), lr=cfg.critic_lr)
         self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=cfg.actor_lr)
@@ -55,10 +54,10 @@ class DDPG:
         next_state = torch.FloatTensor(next_state).to(self.device)
         action = torch.FloatTensor(action).to(self.device)
         # reward = torch.FloatTensor(np.float64(reward)).unsqueeze(1).to(self.device)
-        #reward = torch.FloatTensor(reward).unsqueeze(1).to(self.device)
+        # reward = torch.FloatTensor(reward).unsqueeze(1).to(self.device)
         reward = torch.FloatTensor(reward).to(self.device)
         # done = torch.FloatTensor(np.float64(done)).unsqueeze(1).to(self.device)
-        #done = torch.FloatTensor(done).unsqueeze(1).to(self.device)
+        # done = torch.FloatTensor(done).unsqueeze(1).to(self.device)
         done = torch.FloatTensor(done).to(self.device)
 
         policy_loss = self.critic(state, self.actor(state))

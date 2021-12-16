@@ -204,7 +204,7 @@ class Line:
         # t_power = self.calc_power2(action, velocity)
         punishment_flag = self.check_punishment(index, velocity)
 
-        beta = 0.5
+        beta = 1
         gama = 1
         # if (index < self.locate_dim) & (time > self.scheduled_time):
         #     done = 2
@@ -225,13 +225,13 @@ class Line:
             else:
                 a = -time + self.scheduled_time
             if punishment_flag:
-                reward = -0.001 * total_power - 0.001 * velocity + gama * a + delta * 5
+                reward = -0.001 * total_power - 0.001 * velocity + gama * a + delta * 10
                 if reward < -300:
                     done = 1
                 else:
                     done = 1
             else:
-                reward = -0.001 * total_power - 0.001 * velocity + gama * a + delta * 5
+                reward = -0.001 * total_power - 0.001 * velocity + gama * a + delta * 10
                 if reward < -300:
                     done = 1
                 else:
