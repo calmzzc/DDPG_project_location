@@ -26,7 +26,7 @@ import torch
 from env import NormalizedActions, OUNoise
 from agent import DDPG
 from utils import save_results, make_dir
-from plot import plot_rewards, plot_rewards_cn, plot_speed
+from plot import plot_rewards, plot_rewards_cn, plot_speed, evalplot_speed
 from environment import Line
 
 curr_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")  # 获取当前时间
@@ -273,7 +273,7 @@ def eval(cfg, env, agent):
         else:
             ma_rewards.append(ep_reward)
     print('完成测试！')
-    return rewards, ma_rewards
+    return rewards, ma_rewards, total_v_list, total_t_list, total_a_list
 
 
 if __name__ == "__main__":
@@ -289,8 +289,9 @@ if __name__ == "__main__":
     # 测试
     env, agent = env_agent_config(cfg, seed=10)
     agent.load(path=cfg.model_path)
-    rewards, ma_rewards = eval(cfg, env, agent)
+    rewards, ma_rewards, ev_list, et_list, ea_list = eval(cfg, env, agent)
     save_results(rewards, ma_rewards, tag='eval', path=cfg.result_path)
     plot_rewards_cn(rewards, ma_rewards, tag="eval", env=cfg.env, algo=cfg.algo, path=cfg.result_path)
 
     plot_speed(v_list, t_list, a_list, tag="train", env=cfg.env, algo=cfg.algo, path=cfg.result_path)
+    evalplot_speed(ev_list, et_list, ea_list, tag="eval", env=cfg.env, algo=cfg.algo, path=cfg.result_path)

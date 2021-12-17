@@ -57,7 +57,7 @@ def plot_losses(losses, algo="DQN", save=True, path='./'):
     plt.show()
 
 
-def plot_speed(total_v_list, total_t_list, total_a_list, tag="train", env='Train Optimal', algo="DQN", save=True,
+def plot_speed(total_v_list, total_t_list, total_a_list, tag="train", env='Train Optimal', algo="DDPG", save=True,
                path='./'):
     sns.set()
     plt.figure()
@@ -76,6 +76,27 @@ def plot_speed(total_v_list, total_t_list, total_a_list, tag="train", env='Train
     for i in range(len(total_a_list)):
         if i % 20 == 0:
             plt.plot(total_a_list[i])
+    plt.legend((u'动作曲线',), loc='best', prop=chinese_font())
+    if save:
+        plt.savefig(path + f"{tag}_action_cn")
+    plt.show()
+
+
+def evalplot_speed(total_v_list, total_t_list, total_a_list, tag="eval", env='Train Optimal', algo="DDPG", save=True,
+                   path='./'):
+    sns.set()
+    plt.figure()
+    plt.title(u"{}环境下{}算法的速度曲线".format(env, algo), fontproperties=chinese_font())
+    ax1 = plt.axes(projection='3d')
+    a = np.array(total_v_list[0]).reshape(-1)
+    b = np.array(total_t_list[0]).reshape(-1)
+    c = np.linspace(1, len(total_t_list[0]), len(total_t_list[0]))
+    ax1.plot3D(b, c, a)
+    plt.legend((u'速度曲线',), loc="best", prop=chinese_font())
+    if save:
+        plt.savefig(path + f"{tag}_speed_profile_cn")
+    plt.figure()
+    plt.plot(total_a_list[0])
     plt.legend((u'动作曲线',), loc='best', prop=chinese_font())
     if save:
         plt.savefig(path + f"{tag}_action_cn")
