@@ -26,7 +26,7 @@ import torch
 from env import NormalizedActions, OUNoise
 from agent import DDPG
 from utils import save_results, make_dir
-from plot import plot_rewards, plot_rewards_cn, plot_speed, evalplot_speed
+from plot import plot_rewards, plot_rewards_cn, plot_speed, evalplot_speed, plot_trainep_speed, plot_evalep_speed
 from environment import Line
 
 curr_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")  # 获取当前时间
@@ -40,7 +40,7 @@ class DDPGConfig:
                            '/' + curr_time + '/results/'  # 保存结果的路径
         self.model_path = curr_path + "/outputs/" + self.env + \
                           '/' + curr_time + '/models/'  # 保存模型的路径
-        self.train_eps = 5000  # 测试的回合数
+        self.train_eps = 500  # 测试的回合数
         self.eval_eps = 30  # 测试的回合数
         self.gamma = 0.99  # 折扣因子
         self.critic_lr = 1e-3  # 评论家网络的学习率
@@ -74,7 +74,9 @@ def train(cfg, env, agent):
     total_v_list = []
     total_a_list = []
     total_oa_list = []
+    total_ep_list = []
     for i_ep in range(cfg.train_eps):
+        total_ep_list.append(i_ep)
         state = env.reset()
         ou_noise.reset()
         done = False
@@ -133,7 +135,7 @@ def train(cfg, env, agent):
         else:
             ma_rewards.append(ep_reward)
     print('完成训练！')
-    return rewards, ma_rewards, total_v_list, total_t_list, total_a_list
+    return rewards, ma_rewards, total_v_list, total_t_list, total_a_list, total_ep_list
 
 
 def train2(cfg, env, agent):
@@ -226,8 +228,11 @@ def eval(cfg, env, agent):
     total_t_list = []
     total_v_list = []
     total_a_list = []
+    total_ep_list = []
     for i_ep in range(cfg.eval_eps):
-        state = env.reset()
+        total_ep_list.append(i_ep)
+        # state = env.reset()
+        state = env.eval_reset()
         done = False
         ep_reward = 0
         i_step = 0
@@ -273,14 +278,14 @@ def eval(cfg, env, agent):
         else:
             ma_rewards.append(ep_reward)
     print('完成测试！')
-    return rewards, ma_rewards, total_v_list, total_t_list, total_a_list
+    return rewards, ma_rewards, total_v_list, total_t_list, total_a_list, total_ep_list
 
 
 if __name__ == "__main__":
     cfg = DDPGConfig()
     # 训练
     env, agent = env_agent_config(cfg, seed=1)
-    rewards, ma_rewards, v_list, t_list, a_list = train(cfg, env, agent)
+    rewards, ma_rewards, v_list, t_list, a_list, ep_list = train(cfg, env, agent)
     # rewards, ma_rewards, v_list, t_list, a_list = train2(cfg, env, agent)
     make_dir(cfg.result_path, cfg.model_path)
     agent.save(path=cfg.model_path)
@@ -289,9 +294,14 @@ if __name__ == "__main__":
     # 测试
     env, agent = env_agent_config(cfg, seed=10)
     agent.load(path=cfg.model_path)
-    rewards, ma_rewards, ev_list, et_list, ea_list = eval(cfg, env, agent)
+    rewards, ma_rewards, ev_list, et_list, ea_list, eval_ep_list = eval(cfg, env, agent)
     save_results(rewards, ma_rewards, tag='eval', path=cfg.result_path)
     plot_rewards_cn(rewards, ma_rewards, tag="eval", env=cfg.env, algo=cfg.algo, path=cfg.result_path)
 
-    plot_speed(v_list, t_list, a_list, tag="train", env=cfg.env, algo=cfg.algo, path=cfg.result_path)
-    evalplot_speed(ev_list, et_list, ea_list, tag="eval", env=cfg.env, algo=cfg.algo, path=cfg.result_path)
+    plot_speed(v_list, t_list, a_list, tag="op_train", env=cfg.env, algo=cfg.algo, path=cfg.result_path)
+    evalplot_speed(ev_list, et_list, ea_list, tag="op_eval", env=cfg.env, algo=cfg.algo, path=cfg.result_path)
+
+    plot_trainep_speed(v_list, t_list, a_list, ep_list, tag="ep_train", env=cfg.env, algo=cfg.algo,
+                       path=cfg.result_path)
+    plot_evalep_speed(v_list, t_list, a_list, eval_ep_list, tag="ep_eval", env=cfg.env, algo=cfg.algo,
+                      path=cfg.result_path)

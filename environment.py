@@ -4,7 +4,7 @@ import numpy as np
 
 class Line:
     def __init__(self):
-        self.punishment_indicator = -15
+        self.punishment_indicator = -13
         self.para_a = 0.76
         self.para_b = 0.00636
         self.para_c = 0.000115
@@ -80,6 +80,13 @@ class Line:
         state[0] = np.array(0).reshape(1)
         state[1] = np.array(0).reshape(1)
         return state
+
+    def eval_reset(self):
+        state = np.zeros(2)
+        state[0] = np.array(np.random.random()).reshape(1)
+        state[1] = np.array(np.random.random()).reshape(1)
+        return state
+
 
     def step2(self, total_power, state, action, index):
         # temp_location = state[0]
