@@ -87,7 +87,6 @@ class Line:
         state[1] = np.array(np.random.random()).reshape(1)
         return state
 
-
     def step2(self, total_power, state, action, index):
         # temp_location = state[0]
         time = np.array(state[0]).reshape(1)
@@ -232,13 +231,13 @@ class Line:
             else:
                 a = -time + self.scheduled_time
             if punishment_flag:
-                reward = -0.001 * total_power - 0.001 * velocity + gama * a + delta * 10
+                reward = -0.001 * total_power - 0.001 * velocity + gama * a + delta * 1
                 if reward < -300:
                     done = 1
                 else:
                     done = 1
             else:
-                reward = -0.001 * total_power - 0.001 * velocity + gama * a + delta * 10
+                reward = -0.001 * total_power - 0.001 * velocity + gama * a + delta * 1
                 if reward < -300:
                     done = 1
                 else:
