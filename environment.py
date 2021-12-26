@@ -182,7 +182,7 @@ class Line:
         action = self.action(action)
         if 0 <= index * self.delta_location < 0.25 * self.distance:
             action = action * self.acc
-        elif 0.25 * self.distance <= index * self.delta_location < 0.75 * self.distance:
+        elif 0.25 * self.distance <= index * self.delta_location < 0.7 * self.distance:
             action = ((action - 1) / 1) * self.acc
         else:
             action = -action * self.acc
@@ -221,7 +221,8 @@ class Line:
             else:
                 delta = 0
             if abs(time - self.scheduled_time) <= 10:
-                delta = 10 / abs(time - self.scheduled_time)
+                # delta = 10 / abs(time - self.scheduled_time)
+                delta = 100
             else:
                 delta = 0
             if self.scheduled_time - time < -1000:
@@ -231,13 +232,13 @@ class Line:
             else:
                 a = -time + self.scheduled_time
             if punishment_flag:
-                reward = -0.001 * total_power - 0.001 * velocity + gama * a + delta * 1
+                reward = -0.001 * total_power - 10 * velocity + gama * a + delta * 1
                 if reward < -300:
                     done = 1
                 else:
                     done = 1
             else:
-                reward = -0.001 * total_power - 0.001 * velocity + gama * a + delta * 1
+                reward = -0.001 * total_power - 10 * velocity + gama * a + delta * 1
                 if reward < -300:
                     done = 1
                 else:
