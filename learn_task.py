@@ -26,7 +26,8 @@ import torch
 from env import NormalizedActions, OUNoise
 from agent import DDPG
 from utils import save_results, make_dir
-from plot import plot_rewards, plot_rewards_cn, plot_speed, evalplot_speed, plot_trainep_speed, plot_evalep_speed
+from plot import plot_rewards, plot_rewards_cn, plot_speed, evalplot_speed, plot_trainep_speed, plot_evalep_speed, \
+    plot_power_cn
 from environment import Line
 
 curr_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")  # 获取当前时间
@@ -40,7 +41,7 @@ class DDPGConfig:
                            '/' + curr_time + '/results/'  # 保存结果的路径
         self.model_path = curr_path + "/outputs/" + self.env + \
                           '/' + curr_time + '/models/'  # 保存模型的路径
-        self.train_eps = 5000  # 测试的回合数
+        self.train_eps = 500  # 测试的回合数
         self.eval_eps = 30  # 测试的回合数
         self.gamma = 0.99  # 折扣因子
         self.critic_lr = 1e-3  # 评论家网络的学习率
@@ -75,6 +76,8 @@ def train(cfg, env, agent):
     total_a_list = []
     total_oa_list = []
     total_ep_list = []
+    total_power_list = []
+    ma_total_power_list = []
     for i_ep in range(cfg.train_eps):
         total_ep_list.append(i_ep)
         state = env.reset()
@@ -122,20 +125,18 @@ def train(cfg, env, agent):
                                                                                 np.around(time[0], 2), np.
                                                                                 around(velocity[0], 2),
                                                                                 i_step * 50))
-            # print('回合：{}/{}，奖励：{}, 能耗  {}, 最终位置  {}, 最终速度  {}, 最终时间  {}'.format(i_ep + 1,
-            #                                                                     cfg.train_eps,
-            #                                                                     np.around(ep_reward, 2),
-            #                                                                     np.around(total_power, 2),
-            #                                                                     np.around(location, 2), np.
-            #                                                                     around(velocity, 2),
-            #                                                                     np.around(i_step, 2)))
         rewards.append(ep_reward)
+        total_power_list.append(total_power)
+        if ma_total_power_list:
+            ma_total_power_list.append(0.9 * ma_total_power_list[-1] + 0.1 * total_power)
+        else:
+            ma_total_power_list.append(total_power)
         if ma_rewards:
             ma_rewards.append(0.9 * ma_rewards[-1] + 0.1 * ep_reward)
         else:
             ma_rewards.append(ep_reward)
     print('完成训练！')
-    return rewards, ma_rewards, total_v_list, total_t_list, total_a_list, total_ep_list
+    return rewards, ma_rewards, total_v_list, total_t_list, total_a_list, total_ep_list, total_power_list, ma_total_power_list
 
 
 def train2(cfg, env, agent):
@@ -285,12 +286,13 @@ if __name__ == "__main__":
     cfg = DDPGConfig()
     # 训练
     env, agent = env_agent_config(cfg, seed=1)
-    rewards, ma_rewards, v_list, t_list, a_list, ep_list = train(cfg, env, agent)
+    rewards, ma_rewards, v_list, t_list, a_list, ep_list, power_list, ma_power_list = train(cfg, env, agent)
     # rewards, ma_rewards, v_list, t_list, a_list = train2(cfg, env, agent)
     make_dir(cfg.result_path, cfg.model_path)
     agent.save(path=cfg.model_path)
     save_results(rewards, ma_rewards, tag='train', path=cfg.result_path)
     plot_rewards_cn(rewards, ma_rewards, tag="train", env=cfg.env, algo=cfg.algo, path=cfg.result_path)
+    plot_power_cn(power_list, ma_power_list, tag="train", env=cfg.env, algo=cfg.algo, path=cfg.result_path)
     # 测试
     env, agent = env_agent_config(cfg, seed=10)
     agent.load(path=cfg.model_path)

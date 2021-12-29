@@ -31,7 +31,7 @@ def plot_rewards(rewards, ma_rewards, tag="train", env='CartPole-v0', algo="DQN"
     plt.show()
 
 
-def plot_rewards_cn(rewards, ma_rewards, tag="train", env='CartPole-v0', algo="DQN", save=True, path='./'):
+def plot_rewards_cn(rewards, ma_rewards, tag="train", env='Optimal Control', algo="DDPG", save=True, path='./'):
     ''' 中文画图
     '''
     sns.set()
@@ -43,6 +43,21 @@ def plot_rewards_cn(rewards, ma_rewards, tag="train", env='CartPole-v0', algo="D
     plt.legend((u'奖励', u'滑动平均奖励',), loc="best", prop=chinese_font())
     if save:
         plt.savefig(path + f"{tag}_rewards_curve_cn")
+    # plt.show()
+
+
+def plot_power_cn(power, ma_power, tag="train", env='Optimal Control', algo="DDPG", save=True, path='./'):
+    ''' 中文画图
+    '''
+    sns.set()
+    plt.figure()
+    plt.title(u"{}环境下{}算法的学习曲线".format(env, algo), fontproperties=chinese_font())
+    plt.xlabel(u'回合数', fontproperties=chinese_font())
+    plt.plot(power)
+    plt.plot(ma_power)
+    plt.legend((u'能耗', u'滑动平均能耗',), loc="best", prop=chinese_font())
+    if save:
+        plt.savefig(path + f"{tag}_power_curve_cn")
     # plt.show()
 
 
