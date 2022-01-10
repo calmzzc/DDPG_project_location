@@ -247,13 +247,8 @@ def eval(cfg, env, agent):
             i_step += 1
             action = agent.choose_action(state)
             action = np.array(action).reshape(1)
-            # next_state, reward, done, _ = env.step(action)
-            # ep_reward += reward
             next_state, reward, done, time, velocity, total_power, action = env.step(total_power, state,
                                                                                      action, i_step)
-            # location = np.array(location)
-            # velocity = np.array(velocity)
-            # action = np.array(action)
             t_list.append(time)
             v_list.append(velocity)
             a_list.append(action)
@@ -295,7 +290,7 @@ if __name__ == "__main__":
     plot_rewards_cn(rewards, ma_rewards, tag="train", env=cfg.env, algo=cfg.algo, path=cfg.result_path)
     plot_power_cn(power_list, ma_power_list, tag="train", env=cfg.env, algo=cfg.algo, path=cfg.result_path)
     # 测试
-    env, agent = env_agent_config(cfg, seed=10)
+    env, agent = env_agent_config(cfg, seed=1)
     agent.load(path=cfg.model_path)
     rewards, ma_rewards, ev_list, et_list, ea_list, eval_ep_list = eval(cfg, env, agent)
     save_results(rewards, ma_rewards, tag='eval', path=cfg.result_path)
@@ -306,5 +301,5 @@ if __name__ == "__main__":
 
     plot_trainep_speed(v_list, t_list, a_list, ep_list, tag="ep_train", env=cfg.env, algo=cfg.algo,
                        path=cfg.result_path)
-    plot_evalep_speed(v_list, t_list, a_list, eval_ep_list, tag="ep_eval", env=cfg.env, algo=cfg.algo,
+    plot_evalep_speed(ev_list, et_list, ea_list, eval_ep_list, tag="ep_eval", env=cfg.env, algo=cfg.algo,
                       path=cfg.result_path)

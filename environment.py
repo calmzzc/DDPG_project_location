@@ -4,7 +4,7 @@ import numpy as np
 
 class Line:
     def __init__(self):
-        self.punishment_indicator = -13
+        self.punishment_indicator = -10
         self.para_a = 0.76
         self.para_b = 0.00636
         self.para_c = 0.000115
@@ -22,7 +22,7 @@ class Line:
         self.delta_location = 50
         self.locate_dim = self.distance / self.delta_location
         self.ave_time = self.scheduled_time / self.locate_dim
-        self.limit_speed = {0: 30, 500: 30, 1000: 30, 1500: 30, 2000: 30, 2500: 83.3, 3000: 83.3, 3500: 83.3,
+        self.limit_speed = {0: 25, 500: 25, 1000: 25, 1500: 25, 2000: 25, 2500: 83.3, 3000: 83.3, 3500: 83.3,
                             4000: 83.3, 4500: 83.3,
                             5000: 83.3,
                             5500: 83.3, 6000: 83.3, 6500: 83.3, 7000: 83.3, 7500: 83.3, 8000: 83.3,
@@ -181,9 +181,9 @@ class Line:
         a_flag = 0
 
         action = self.action(action)
-        if 0 <= index * self.delta_location < 0.25 * self.distance:
+        if 0 <= index * self.delta_location < 0.2 * self.distance:
             action = action * self.acc
-        elif 0.25 * self.distance <= index * self.delta_location < 0.7 * self.distance:
+        elif 0.2 * self.distance <= index * self.delta_location < 0.7 * self.distance:
             action = ((action - 1) / 1) * self.acc
         else:
             action = -action * self.acc
@@ -215,7 +215,7 @@ class Line:
         beta = 0.75
         gama = 1
         if index == self.locate_dim:
-            if abs(time - self.scheduled_time) <= 10:
+            if abs(time - self.scheduled_time) <= 5:
                 # delta = 10 / abs(time - self.scheduled_time)
                 delta = 100
             else:
@@ -245,7 +245,7 @@ class Line:
             else:
                 delta = 0
             if punishment_flag:
-                reward = -0.01 * t_power - 0.01 * f_power - 0.9 * abs(
+                reward = -0.1 * t_power - 0.1 * f_power - 0.9 * abs(
                     temp_time - self.ave_time) + self.punishment_indicator
                 # temp = (self.distance - index * self.delta_location) / abs((self.scheduled_time - time) + 1)
                 # if temp > 100:
@@ -253,7 +253,7 @@ class Line:
                 # reward = - 0.01 * t_power - 0.01 * f_power - beta * abs(velocity - temp) - delta * 5 - 0 * (
                 #         self.locate_dim - index) + self.punishment_indicator
             else:
-                reward = -0.01 * t_power - 0.01 * f_power - 0.9 * abs(temp_time - self.ave_time)
+                reward = -0.1 * t_power - 0.1 * f_power - 0.9 * abs(temp_time - self.ave_time)
                 # temp = (self.distance - index * self.delta_location) / abs((self.scheduled_time - time) + 1)
                 # if temp > 100:
                 #     temp = 100
