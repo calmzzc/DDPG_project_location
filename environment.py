@@ -220,20 +220,20 @@ class Line:
                 delta = 100
             else:
                 delta = 0
-            if self.scheduled_time - time < -1000:
-                a = -1000
+            if self.scheduled_time - time < -200:
+                a = -200
             elif self.scheduled_time - time > 0:
                 a = -self.scheduled_time + time
             else:
                 a = -1 * time + 1 * self.scheduled_time
             if punishment_flag:
-                reward = -0.001 * total_power - 10 * velocity + gama * a + delta * 1
+                reward = -0.001 * total_power - 5 * velocity + gama * a + delta * 1
                 if reward < -300:
                     done = 1
                 else:
                     done = 1
             else:
-                reward = -0.001 * total_power - 10 * velocity + gama * a + delta * 1
+                reward = -0.001 * total_power - 5 * velocity + gama * a + delta * 1
                 if reward < -300:
                     done = 1
                 else:

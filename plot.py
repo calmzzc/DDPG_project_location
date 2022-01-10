@@ -38,9 +38,20 @@ def plot_rewards_cn(rewards, ma_rewards, tag="train", env='Optimal Control', alg
     plt.figure()
     plt.title(u"{}环境下{}算法的奖励曲线".format(env, algo), fontproperties=chinese_font())
     plt.xlabel(u'回合数', fontproperties=chinese_font())
-    plt.plot(rewards)
+    ma_std = np.std(ma_rewards, ddof=1)
+    x = np.linspace(0, len(ma_rewards), len(ma_rewards))
+    # for i in range(len(ma_rewards)):
+    #     ma_rewards[i] = ma_rewards[i].reshape(-1)
+    ma_rewards_pstd = [i + ma_std for i in ma_rewards]  # 加方差
+    ma_rewards_pstd = np.array(ma_rewards_pstd)
+    ma_rewards_pstd = ma_rewards_pstd.reshape(1, ma_rewards_pstd.shape[0])[0]
+    ma_rewards_mstd = [i - ma_std for i in ma_rewards]  # 减方差
+    ma_rewards_mstd = np.array(ma_rewards_mstd)
+    ma_rewards_mstd = ma_rewards_mstd.reshape(1, ma_rewards_mstd.shape[0])[0]
+    # plt.plot(rewards)
     plt.plot(ma_rewards)
-    plt.legend((u'奖励', u'滑动平均奖励',), loc="best", prop=chinese_font())
+    plt.fill_between(x, ma_rewards_pstd, ma_rewards_mstd, facecolor='blue', alpha=0.3)
+    plt.legend((u'滑动平均奖励', u'奖励',), loc="best", prop=chinese_font())
     if save:
         plt.savefig(path + f"{tag}_rewards_curve_cn")
     # plt.show()
@@ -53,9 +64,18 @@ def plot_power_cn(power, ma_power, tag="train", env='Optimal Control', algo="DDP
     plt.figure()
     plt.title(u"{}环境下{}算法的能耗曲线".format(env, algo), fontproperties=chinese_font())
     plt.xlabel(u'回合数', fontproperties=chinese_font())
+    ma_std = np.std(ma_power, ddof=1)
+    x = np.linspace(0, len(ma_power), len(ma_power))
+    ma_power_pstd = [i + ma_std for i in ma_power]  # 加方差
+    ma_power_pstd = np.array(ma_power_pstd)
+    ma_power_pstd = ma_power_pstd.reshape(1, ma_power_pstd.shape[0])[0]
+    ma_power_mstd = [i - ma_std for i in ma_power]  # 减方差
+    ma_power_mstd = np.array(ma_power_mstd)
+    ma_power_mstd = ma_power_mstd.reshape(1, ma_power_mstd.shape[0])[0]
     plt.plot(power)
     plt.plot(ma_power)
-    plt.legend((u'能耗', u'滑动平均能耗',), loc="best", prop=chinese_font())
+    plt.legend((u'滑动平均能耗', u'能耗',), loc="best", prop=chinese_font())
+    plt.fill_between(x, ma_power_pstd, ma_power_mstd, facecolor='blue', alpha=0.3)
     if save:
         plt.savefig(path + f"{tag}_power_curve_cn")
     # plt.show()
