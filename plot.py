@@ -36,7 +36,7 @@ def plot_rewards_cn(rewards, ma_rewards, tag="train", env='Optimal Control', alg
     '''
     sns.set()
     plt.figure()
-    plt.title(u"{}环境下{}算法的学习曲线".format(env, algo), fontproperties=chinese_font())
+    plt.title(u"{}环境下{}算法的奖励曲线".format(env, algo), fontproperties=chinese_font())
     plt.xlabel(u'回合数', fontproperties=chinese_font())
     plt.plot(rewards)
     plt.plot(ma_rewards)
@@ -51,7 +51,7 @@ def plot_power_cn(power, ma_power, tag="train", env='Optimal Control', algo="DDP
     '''
     sns.set()
     plt.figure()
-    plt.title(u"{}环境下{}算法的学习曲线".format(env, algo), fontproperties=chinese_font())
+    plt.title(u"{}环境下{}算法的能耗曲线".format(env, algo), fontproperties=chinese_font())
     plt.xlabel(u'回合数', fontproperties=chinese_font())
     plt.plot(power)
     plt.plot(ma_power)
@@ -76,10 +76,10 @@ def plot_speed(total_v_list, total_t_list, total_a_list, tag="train", env='Train
                path='./'):
     sns.set()
     plt.figure()
-    plt.title(u"{}环境下{}算法的速度曲线".format(env, algo), fontproperties=chinese_font())
+    plt.title(u"{}环境下{}算法的训练速度曲线".format(env, algo), fontproperties=chinese_font())
     ax1 = plt.axes(projection='3d')
     for i in range(len(total_v_list)):
-        if i % 500 == 0:
+        if i % 50 == 0:
             a = np.array(total_v_list[i]).reshape(-1)
             b = np.array(total_t_list[i]).reshape(-1)
             c = np.linspace(1, len(total_t_list[i]), len(total_t_list[i]))
@@ -89,7 +89,7 @@ def plot_speed(total_v_list, total_t_list, total_a_list, tag="train", env='Train
         plt.savefig(path + f"{tag}_speed_profile_cn")
     plt.figure()
     for i in range(len(total_a_list)):
-        if i % 500 == 0:
+        if i % 50 == 0:
             plt.plot(total_a_list[i])
     plt.legend((u'动作曲线',), loc='best', prop=chinese_font())
     if save:
@@ -101,7 +101,7 @@ def evalplot_speed(total_v_list, total_t_list, total_a_list, tag="eval", env='Tr
                    path='./'):
     sns.set()
     plt.figure()
-    plt.title(u"{}环境下{}算法的速度曲线".format(env, algo), fontproperties=chinese_font())
+    plt.title(u"{}环境下{}算法的评价速度曲线".format(env, algo), fontproperties=chinese_font())
     ax1 = plt.axes(projection='3d')
     for i in range(len(total_v_list)):
         if i % 6 == 0:
@@ -125,10 +125,10 @@ def plot_trainep_speed(total_v_list, total_t_list, total_a_list, total_ep_list, 
                        path='./'):
     sns.set()
     plt.figure()
-    plt.title(u"{}环境下{}算法的速度曲线".format(env, algo), fontproperties=chinese_font())
+    plt.title(u"{}环境下{}算法的训练速度曲线（分幕）".format(env, algo), fontproperties=chinese_font())
     ax1 = plt.axes(projection='3d')
     for i in range(len(total_ep_list)):
-        if i % 500 == 0:
+        if i % 50 == 0:
             a = np.array(total_v_list[i]).reshape(-1)
             b = np.array(total_t_list[i]).reshape(-1)
             c = np.linspace(total_ep_list[i], total_ep_list[i], len(total_t_list[i]))
@@ -139,7 +139,7 @@ def plot_trainep_speed(total_v_list, total_t_list, total_a_list, total_ep_list, 
     plt.figure()
     ax2 = plt.axes(projection='3d')
     for j in range(len(total_ep_list)):
-        if j % 500 == 0:
+        if j % 50 == 0:
             a1 = np.array(total_a_list[j]).reshape(-1)
             b1 = np.array(total_t_list[j]).reshape(-1)
             c1 = np.linspace(total_ep_list[j], total_ep_list[j], len(total_t_list[j]))
@@ -156,7 +156,7 @@ def plot_evalep_speed(total_v_list, total_t_list, total_a_list, total_ep_list, t
                       path='./'):
     sns.set()
     plt.figure()
-    plt.title(u"{}环境下{}算法的速度曲线".format(env, algo), fontproperties=chinese_font())
+    plt.title(u"{}环境下{}算法的评价速度曲线（分幕）".format(env, algo), fontproperties=chinese_font())
     ax1 = plt.axes(projection='3d')
     for i in range(len(total_ep_list)):
         if i % 6 == 0:

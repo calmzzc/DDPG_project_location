@@ -21,6 +21,7 @@ class Line:
         self.action_space = 1
         self.delta_location = 50
         self.locate_dim = self.distance / self.delta_location
+        self.ave_time = self.scheduled_time / self.locate_dim
         self.limit_speed = {0: 30, 500: 30, 1000: 30, 1500: 30, 2000: 30, 2500: 83.3, 3000: 83.3, 3500: 83.3,
                             4000: 83.3, 4500: 83.3,
                             5000: 83.3,
@@ -199,6 +200,7 @@ class Line:
             velocity = np.array(30).reshape(1)
 
         time = time + self.delta_location / (velocity / 2 + temp_velocity / 2)
+        temp_time = self.delta_location / (velocity / 2 + temp_velocity / 2)  # 每一个位移间隔的时间
 
         # tc_location = location
 
@@ -210,16 +212,9 @@ class Line:
         # t_power = self.calc_power2(action, velocity)
         punishment_flag = self.check_punishment(index, velocity)
 
-        beta = 0.5
+        beta = 0.75
         gama = 1
-        # if (index < self.locate_dim) & (time > self.scheduled_time):
-        #     done = 2
-        #     reward = np.array((index - self.locate_dim) * 1.5).reshape(1)
         if index == self.locate_dim:
-            if time > self.scheduled_time:
-                delta = 0
-            else:
-                delta = 0
             if abs(time - self.scheduled_time) <= 10:
                 # delta = 10 / abs(time - self.scheduled_time)
                 delta = 100
@@ -230,7 +225,7 @@ class Line:
             elif self.scheduled_time - time > 0:
                 a = -self.scheduled_time + time
             else:
-                a = -2 * time + 2 * self.scheduled_time
+                a = -1 * time + 1 * self.scheduled_time
             if punishment_flag:
                 reward = -0.001 * total_power - 10 * velocity + gama * a + delta * 1
                 if reward < -300:
@@ -243,20 +238,6 @@ class Line:
                     done = 1
                 else:
                     done = 1
-            # if punishment_flag:
-            #     reward = 0 / total_power - 0.1 * beta * velocity - gama * abs(
-            #         time - self.scheduled_time) - delta * 5 + 1000 + self.punishment_indicator
-            #     if reward < -300:
-            #         done = 2
-            #     else:
-            #         done = 1
-            # else:
-            #     reward = 0 / total_power - 0.1 * beta * velocity - gama * abs(
-            #         time - self.scheduled_time) - delta * 5 + 1000
-            #     if reward < -300:
-            #         done = 2
-            #     else:
-            #         done = 1
         else:
             done = 0
             if time > self.scheduled_time:
@@ -264,33 +245,20 @@ class Line:
             else:
                 delta = 0
             if punishment_flag:
-                temp = (self.distance - index * self.delta_location) / abs((self.scheduled_time - time) + 1)
-                if temp > 100:
-                    temp = 100
-                reward = - 0.01 * t_power - 0.01 * f_power - beta * abs(velocity - temp) - delta * 5 - 0 * (
-                        self.locate_dim - index) + self.punishment_indicator
+                reward = -0.01 * t_power - 0.01 * f_power - 0.9 * abs(
+                    temp_time - self.ave_time) + self.punishment_indicator
+                # temp = (self.distance - index * self.delta_location) / abs((self.scheduled_time - time) + 1)
+                # if temp > 100:
+                #     temp = 100
+                # reward = - 0.01 * t_power - 0.01 * f_power - beta * abs(velocity - temp) - delta * 5 - 0 * (
+                #         self.locate_dim - index) + self.punishment_indicator
             else:
-                temp = (self.distance - index * self.delta_location) / abs((self.scheduled_time - time) + 1)
-                if temp > 100:
-                    temp = 100
-                reward = - 0.01 * t_power - 0.01 * f_power - beta * abs(velocity - temp) - delta * 5 - 0 * (
-                        self.locate_dim - index)
-            # done = 0
-            # if time > self.scheduled_time:
-            #     delta = 0
-            # else:
-            #     delta = 0
-            # if punishment_flag:
-            #     temp = (self.distance - index * self.delta_location) / abs((self.scheduled_time - time) + 1)
-            #     if temp > 100:
-            #         temp = 100
-            #     reward = - 0.00 * t_power - 0.00 * f_power + beta / temp - delta * 5 + 3 / (
-            #             self.locate_dim - index + 1) + self.punishment_indicator
-            # else:
-            #     temp = (self.distance - index * self.delta_location) / abs((self.scheduled_time - time) + 1)
-            #     if temp > 100:
-            #         temp = 100
-            #     reward = - 0.00 * t_power - 0.00 * f_power + beta / temp - delta * 5 + 3 / (self.locate_dim - index + 1)
+                reward = -0.01 * t_power - 0.01 * f_power - 0.9 * abs(temp_time - self.ave_time)
+                # temp = (self.distance - index * self.delta_location) / abs((self.scheduled_time - time) + 1)
+                # if temp > 100:
+                #     temp = 100
+                # reward = - 0.01 * t_power - 0.01 * f_power - beta * abs(velocity - temp) - delta * 5 - 0 * (
+                #         self.locate_dim - index)
 
         return state, reward, done, time, velocity, total_power, action
 
