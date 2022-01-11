@@ -41,7 +41,7 @@ class DDPGConfig:
                            '/' + curr_time + '/results/'  # 保存结果的路径
         self.model_path = curr_path + "/outputs/" + self.env + \
                           '/' + curr_time + '/models/'  # 保存模型的路径
-        self.train_eps = 30  # 测试的回合数
+        self.train_eps = 500  # 测试的回合数
         self.eval_eps = 30  # 测试的回合数
         self.gamma = 0.99  # 折扣因子
         self.critic_lr = 1e-3  # 评论家网络的学习率
@@ -135,7 +135,7 @@ def train(cfg, env, agent):
         rewards.append(ep_reward)
         unsafe_counts.append(ep_unsafe_counts)
         if ma_unsafe_counts:
-            ma_unsafe_counts.append(0.9 * unsafe_counts[-1] + 0.1 * ep_unsafe_counts)
+            ma_unsafe_counts.append(0.9 * ma_unsafe_counts[-1] + 0.1 * ep_unsafe_counts)
         else:
             ma_unsafe_counts.append(ep_unsafe_counts)
         total_power_list.append(total_power)

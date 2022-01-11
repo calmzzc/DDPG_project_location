@@ -87,20 +87,20 @@ def plot_unsafecounts_cn(unsafe_counts, ma_unsafe_counts, tag="train", env='Opti
     '''
     sns.set()
     plt.figure()
-    plt.title(u"{}环境下{}算法的能耗曲线".format(env, algo), fontproperties=chinese_font())
+    plt.title(u"{}环境下{}算法的不安全动作次数曲线".format(env, algo), fontproperties=chinese_font())
     plt.xlabel(u'回合数', fontproperties=chinese_font())
-    ma_std = np.std(ma_unsafe_counts, ddof=1)
-    x = np.linspace(0, len(ma_unsafe_counts), len(ma_unsafe_counts))
-    ma_unsafe_counts_pstd = [i + ma_std for i in ma_unsafe_counts]  # 加方差
-    ma_unsafe_counts_pstd = np.array(ma_unsafe_counts_pstd)
-    ma_unsafe_counts_pstd = ma_unsafe_counts_pstd.reshape(1, ma_unsafe_counts_pstd.shape[0])[0]
+    # ma_std = np.std(ma_unsafe_counts, ddof=1)
+    # x = np.linspace(0, len(ma_unsafe_counts), len(ma_unsafe_counts))
+    # ma_unsafe_counts_pstd = [i + ma_std for i in ma_unsafe_counts]  # 加方差
+    # ma_unsafe_counts_pstd = np.array(ma_unsafe_counts_pstd)
+    # ma_unsafe_counts_pstd = ma_unsafe_counts_pstd.reshape(1, ma_unsafe_counts_pstd.shape[0])[0]
     # ma_unsafe_counts_mstd = [i - ma_std for i in ma_unsafe_counts]  # 减方差
     # ma_unsafe_counts_mstd = np.array(ma_unsafe_counts_mstd)
     # ma_unsafe_counts_mstd = ma_unsafe_counts_mstd.reshape(1, ma_unsafe_counts_mstd.shape[0])[0]
     plt.plot(unsafe_counts)
     plt.plot(ma_unsafe_counts)
     plt.legend((u'滑动平均不安全次数', u'不安全次数',), loc="best", prop=chinese_font())
-    plt.fill_between(x, ma_unsafe_counts_pstd, 0, facecolor='blue', alpha=0.3)
+    # plt.fill_between(x, ma_unsafe_counts_pstd, 0, facecolor='blue', alpha=0.3)
     if save:
         plt.savefig(path + f"{tag}_unsafe counts_curve_cn")
     # plt.show()
