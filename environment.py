@@ -172,7 +172,7 @@ class Line:
 
         return state, reward, done, time, velocity, total_power, action
 
-    def step(self, total_power, state, action, index):
+    def step(self, total_power, state, action, index, unsafe_counts):
         # temp_location = state[0]
         time = np.array(state[0]).reshape(1)
         # location = state[0]
@@ -227,12 +227,14 @@ class Line:
             else:
                 a = -1 * time + 1 * self.scheduled_time
             if punishment_flag:
+                unsafe_counts = unsafe_counts + 1
                 reward = -0.001 * total_power - 5 * velocity + gama * a + delta * 1
                 if reward < -300:
                     done = 1
                 else:
                     done = 1
             else:
+                unsafe_counts = unsafe_counts + 0
                 reward = -0.001 * total_power - 5 * velocity + gama * a + delta * 1
                 if reward < -300:
                     done = 1
@@ -245,6 +247,7 @@ class Line:
             else:
                 delta = 0
             if punishment_flag:
+                unsafe_counts = unsafe_counts + 1
                 reward = -0.1 * t_power - 0.1 * f_power - 0.9 * abs(
                     temp_time - self.ave_time) + self.punishment_indicator
                 # temp = (self.distance - index * self.delta_location) / abs((self.scheduled_time - time) + 1)
@@ -253,6 +256,7 @@ class Line:
                 # reward = - 0.01 * t_power - 0.01 * f_power - beta * abs(velocity - temp) - delta * 5 - 0 * (
                 #         self.locate_dim - index) + self.punishment_indicator
             else:
+                unsafe_counts = unsafe_counts + 0
                 reward = -0.1 * t_power - 0.1 * f_power - 0.9 * abs(temp_time - self.ave_time)
                 # temp = (self.distance - index * self.delta_location) / abs((self.scheduled_time - time) + 1)
                 # if temp > 100:
@@ -260,7 +264,7 @@ class Line:
                 # reward = - 0.01 * t_power - 0.01 * f_power - beta * abs(velocity - temp) - delta * 5 - 0 * (
                 #         self.locate_dim - index)
 
-        return state, reward, done, time, velocity, total_power, action
+        return state, reward, done, time, velocity, total_power, action, unsafe_counts
 
     def action(self, action):
         low_bound = 0

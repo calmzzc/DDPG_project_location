@@ -27,7 +27,7 @@ from env import NormalizedActions, OUNoise
 from agent import DDPG
 from utils import save_results, make_dir
 from plot import plot_rewards, plot_rewards_cn, plot_speed, evalplot_speed, plot_trainep_speed, plot_evalep_speed, \
-    plot_power_cn
+    plot_power_cn, plot_unsafecounts_cn
 from environment import Line
 
 curr_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")  # 获取当前时间
@@ -41,7 +41,7 @@ class DDPGConfig:
                            '/' + curr_time + '/results/'  # 保存结果的路径
         self.model_path = curr_path + "/outputs/" + self.env + \
                           '/' + curr_time + '/models/'  # 保存模型的路径
-        self.train_eps = 500  # 测试的回合数
+        self.train_eps = 30  # 测试的回合数
         self.eval_eps = 30  # 测试的回合数
         self.gamma = 0.99  # 折扣因子
         self.critic_lr = 1e-3  # 评论家网络的学习率
@@ -70,7 +70,8 @@ def train(cfg, env, agent):
     ou_noise = OUNoise(env.action_space)  # 动作噪声
     rewards = []  # 记录奖励
     ma_rewards = []  # 记录滑动平均奖励
-    ma_rewards_p = []
+    unsafe_counts = []  # 记录超速次数
+    ma_unsafe_counts = []  # 记录滑动平均次数
     total_t_list = []
     total_x_list = []
     total_v_list = []
@@ -85,6 +86,7 @@ def train(cfg, env, agent):
         ou_noise.reset()
         done = False
         ep_reward = 0
+        ep_unsafe_counts = 0
         i_step = 0
         x_list = []
         t_list = [0]
@@ -98,8 +100,10 @@ def train(cfg, env, agent):
             oa_list.append(action)
             action = ou_noise.get_action(action, i_step)
 
-            next_state, reward, done, time, velocity, total_power, action = env.step(total_power, state,
-                                                                                     action, i_step)
+            next_state, reward, done, time, velocity, total_power, action, ep_unsafe_counts = env.step(total_power,
+                                                                                                       state,
+                                                                                                       action, i_step,
+                                                                                                       ep_unsafe_counts)
 
             t_list.append(time)
             v_list.append(velocity)
@@ -119,14 +123,21 @@ def train(cfg, env, agent):
                 oa_list.clear()
                 break
         if (i_ep + 1) % 10 == 0:
-            print('回合：{}/{}，奖励：{}, 能耗  {}, 最终时间  {}, 最终速度  {}, 最终位置  {}'.format(i_ep + 1,
-                                                                                cfg.train_eps,
-                                                                                np.around(ep_reward[0], 2),
-                                                                                np.around(total_power[0], 2),
-                                                                                np.around(time[0], 2), np.
-                                                                                around(velocity[0], 2),
-                                                                                i_step * 50))
+            print('回合：{}/{}，奖励：{}, 能耗  {}, 最终时间  {}, 最终速度  {}, 最终位置  {},不安全次数  {}'.format(i_ep + 1,
+                                                                                          cfg.train_eps,
+                                                                                          np.around(ep_reward[0], 2),
+                                                                                          np.around(total_power[0], 2),
+                                                                                          np.around(time[0], 2), np.
+                                                                                          around(velocity[0], 2),
+                                                                                          i_step * 50,
+                                                                                          np.round(ep_unsafe_counts,
+                                                                                                   0)))
         rewards.append(ep_reward)
+        unsafe_counts.append(ep_unsafe_counts)
+        if ma_unsafe_counts:
+            ma_unsafe_counts.append(0.9 * unsafe_counts[-1] + 0.1 * ep_unsafe_counts)
+        else:
+            ma_unsafe_counts.append(ep_unsafe_counts)
         total_power_list.append(total_power)
         if ma_total_power_list:
             ma_total_power_list.append(0.9 * ma_total_power_list[-1] + 0.1 * total_power)
@@ -137,7 +148,7 @@ def train(cfg, env, agent):
         else:
             ma_rewards.append(ep_reward)
     print('完成训练！')
-    return rewards, ma_rewards, total_v_list, total_t_list, total_a_list, total_ep_list, total_power_list, ma_total_power_list
+    return rewards, ma_rewards, total_v_list, total_t_list, total_a_list, total_ep_list, total_power_list, ma_total_power_list, unsafe_counts, ma_unsafe_counts
 
 
 def train2(cfg, env, agent):
@@ -226,6 +237,8 @@ def eval(cfg, env, agent):
     print(f'环境：{cfg.env}, 算法：{cfg.algo}, 设备：{cfg.device}')
     rewards = []  # 记录奖励
     ma_rewards = []  # 记录滑动平均奖励
+    unsafe_counts = []  # 记录超速次数
+    ma_unsafe_counts = []  # 记录滑动平均次数
     total_x_list = []
     total_t_list = []
     total_v_list = []
@@ -236,6 +249,7 @@ def eval(cfg, env, agent):
         state = env.reset()
         # state = env.eval_reset()
         done = False
+        ep_unsafe_counts = 0
         ep_reward = 0
         i_step = 0
         total_power = 0
@@ -247,8 +261,10 @@ def eval(cfg, env, agent):
             i_step += 1
             action = agent.choose_action(state)
             action = np.array(action).reshape(1)
-            next_state, reward, done, time, velocity, total_power, action = env.step(total_power, state,
-                                                                                     action, i_step)
+            next_state, reward, done, time, velocity, total_power, action, ep_unsafe_counts = env.step(total_power,
+                                                                                                       state,
+                                                                                                       action, i_step,
+                                                                                                       ep_unsafe_counts)
             t_list.append(time)
             v_list.append(velocity)
             a_list.append(action)
@@ -270,6 +286,11 @@ def eval(cfg, env, agent):
                                                                             around(velocity[0], 2),
                                                                             i_step))
         rewards.append(ep_reward)
+        unsafe_counts.append(ep_unsafe_counts)
+        if ma_unsafe_counts:
+            ma_unsafe_counts.append(0.9 * unsafe_counts[-1] + 0.1 * ep_unsafe_counts)
+        else:
+            ma_unsafe_counts.append(ep_unsafe_counts)
         if ma_rewards:
             ma_rewards.append(0.9 * ma_rewards[-1] + 0.1 * ep_reward)
         else:
@@ -282,7 +303,9 @@ if __name__ == "__main__":
     cfg = DDPGConfig()
     # 训练
     env, agent = env_agent_config(cfg, seed=1)
-    rewards, ma_rewards, v_list, t_list, a_list, ep_list, power_list, ma_power_list = train(cfg, env, agent)
+    rewards, ma_rewards, v_list, t_list, a_list, ep_list, power_list, ma_power_list, unsafe_c, ma_unsafe_c = train(cfg,
+                                                                                                                   env,
+                                                                                                                   agent)
     # rewards, ma_rewards, v_list, t_list, a_list = train2(cfg, env, agent)
     make_dir(cfg.result_path, cfg.model_path)
     agent.save(path=cfg.model_path)
@@ -303,3 +326,4 @@ if __name__ == "__main__":
                        path=cfg.result_path)
     plot_evalep_speed(ev_list, et_list, ea_list, eval_ep_list, tag="ep_eval", env=cfg.env, algo=cfg.algo,
                       path=cfg.result_path)
+    plot_unsafecounts_cn(unsafe_c, ma_unsafe_c, tag="train", env=cfg.env, algo=cfg.algo, path=cfg.result_path)
